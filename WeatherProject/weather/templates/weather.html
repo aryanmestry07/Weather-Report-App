@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Weather Report</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+    body {
+        font-family: 'Segoe UI', sans-serif;
+        background: linear-gradient(135deg, #ff9a9e, #fad0c4); /* soft pink-orange gradient */
+        min-height: 100vh;
+        padding: 30px;
+    }
+    h1 { 
+        color: #fff8f0; 
+        margin-bottom: 20px; 
+        text-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+    }
+    .card {
+        border-radius: 15px;
+        box-shadow: 0 6px 14px rgba(0,0,0,0.2);
+        min-height: 300px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        background: #ffffffcc; /* translucent white */
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.25);
+    }
+    .card img { 
+        width: 70px; 
+        height: 70px; 
+    }
+    .city-heading { 
+        color: #fff8f0; 
+        font-size: 1.6rem; 
+        margin: 20px 0; 
+        text-shadow: 1px 1px 5px rgba(0,0,0,0.4);
+    }
+
+    /* Custom carousel arrows */
+    .carousel-control-prev,
+    .carousel-control-next {
+        width: auto;
+        top: 50%;
+        transform: translateY(-50%);
+        opacity: 1;
+    }
+    .carousel-control-prev {
+        left: -70px; /* push outside cards */
+    }
+    .carousel-control-next {
+        right: -70px; /* push outside cards */
+    }
+    .carousel-control-prev-icon,
+    .carousel-control-next-icon {
+        background-size: 100% 100%;
+        filter: invert(1); /* keep arrows visible */
+    }
+
+    /* Arrow button style */
+    .arrow-btn {
+        background: rgba(255, 138, 101, 0.8); /* soft orange */
+        border-radius: 50%;
+        padding: 15px;
+        transition: background 0.3s;
+    }
+    .arrow-btn:hover {
+        background: rgba(255, 87, 34, 0.95); /* darker orange on hover */
+    }
+    button[disabled] .arrow-btn {
+        background: rgba(200, 200, 200, 0.5); /* gray when disabled */
+    }
+</style>
+
+</head>
+<body>
+<div class="container text-center">
+    <h1>🌦 Weather Report</h1>
+
+    <!-- Search Form -->
+    <form method="post" class="mb-3">
+        {% csrf_token %}
+        <div class="row justify-content-center">
+            <div class="col-md-4">{{ form.city }}</div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Get Weather</button>
+            </div>
+        </div>
+    </form>
+
+    {% if weather_cards and weather_cards.0.city %}
+        <h2 class="city-heading">{{ weather_cards.0.city }}, {{ weather_cards.0.country }}</h2>
+    {% endif %}
+
+    {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+
+    {% if weather_cards or future_cards %}
+    <div class="position-relative">
+        <div id="weatherCarousel" class="carousel slide" data-bs-ride="false">
+            <div class="carousel-inner">
+
+                <!-- Slide 1: 4 cards -->
+                {% if weather_cards %}
+                <div class="carousel-item active" data-slide-index="0">
+                    <div class="row g-4 justify-content-center">
+                        {% for w in weather_cards %}
+                        <div class="col-md-3 col-sm-6">
+                            <div class="card p-3 h-100">
+                                <h4>{{ w.title }}</h4>
+                                <p>{{ w.date }}</p>
+                                <img src="{{ w.icon }}" alt="icon" class="mx-auto">
+                                <p class="fw-bold mt-2">{{ w.condition }}</p>
+                                <p>🌡 Avg: {{ w.avg_temp }} °C</p>
+                                <p>⬆ {{ w.max_temp }} °C | ⬇ {{ w.min_temp }} °C</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Slide 2: future cards -->
+                {% if future_cards %}
+                <div class="carousel-item" data-slide-index="1">
+                    <div class="row g-4 justify-content-center">
+                        {% for w in future_cards %}
+                        <div class="col-md-3 col-sm-6">
+                            <div class="card p-3 h-100">
+                                <h4>{{ w.title }}</h4>
+                                <p>{{ w.date }}</p>
+                                <img src="{{ w.icon }}" alt="icon" class="mx-auto">
+                                <p class="fw-bold mt-2">{{ w.condition }}</p>
+                                <p>🌡 Avg: {{ w.avg_temp }} °C</p>
+                                <p>⬆ {{ w.max_temp }} °C | ⬇ {{ w.min_temp }} °C</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+
+        <!-- Controls placed outside -->
+        <button id="prevBtn" class="carousel-control-prev" type="button">
+            <span class="arrow-btn">
+                <span class="carousel-control-prev-icon"></span>
+            </span>
+        </button>
+        <button id="nextBtn" class="carousel-control-next" type="button">
+            <span class="arrow-btn">
+                <span class="carousel-control-next-icon"></span>
+            </span>
+        </button>
+    </div>
+    {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const carouselEl = document.getElementById('weatherCarousel');
+    if (!carouselEl) return;
+
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const carousel = new bootstrap.Carousel(carouselEl, { interval: false, ride: false });
+
+    function updateButtons() {
+        const activeIndex = Array.from(carouselEl.querySelectorAll('.carousel-item'))
+                                 .findIndex(item => item.classList.contains('active'));
+        const totalSlides = carouselEl.querySelectorAll('.carousel-item').length;
+        prevBtn.disabled = (activeIndex === 0);
+        nextBtn.disabled = (activeIndex === totalSlides - 1);
+    }
+
+    prevBtn.addEventListener('click', function() { carousel.prev(); });
+    nextBtn.addEventListener('click', function() { carousel.next(); });
+
+    carouselEl.addEventListener('slid.bs.carousel', updateButtons);
+    updateButtons();
+});
+</script>
+</body>
+</html>
