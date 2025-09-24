@@ -31,41 +31,27 @@ Weather data is displayed in a **Bootstrap carousel** with navigation arrows.
 ## ⚙️ Installation
 
 1. Clone the repository:
-   ```bash
    git clone https://github.com/your-username/weather-app.git
    cd weather-app
 Create and activate a virtual environment:
 
-bash
-Copy code
 python -m venv venv
 source venv/bin/activate   # Linux/Mac
 venv\Scripts\activate      # Windows
 Install dependencies:
 
-bash
-Copy code
 pip install -r requirements.txt
 Get your WeatherAPI Key
 
 Go to WeatherAPI.com
-
 Sign up for a free account
-
 Copy your API key from the dashboard
-
 Add your API key inside views.py:
 
-python
-Copy code
 API_KEY = "your_api_key_here"
 Run the development server:
 
-bash
-Copy code
 python manage.py runserver
 Open in browser:
 
-cpp
-Copy code
 http://127.0.0.1:8000/
